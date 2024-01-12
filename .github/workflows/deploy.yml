@@ -2,12 +2,12 @@ name: Deploy Node.js CI
 
 on:
   push:
-      branches: [ "main" ]
-
+    #      branches: [ "main" ]
+    tags: # Remove the `branches` node and add this one
+      - '*'
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
     - uses: actions/checkout@v4
     - name: Use Node.js
@@ -18,3 +18,19 @@ jobs:
       with:
         name: Build
         path: dist
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    needs: build
+
+    steps:
+      - uses: actions/download-artifact@v3
+        with:
+          name: Build
+          path: build
+      - run: zip -r build.zip build/
+      - uses: ncipollo/release-action@v1
+        with:
+          artifacts: "build.zip"
